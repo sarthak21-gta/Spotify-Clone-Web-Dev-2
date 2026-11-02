@@ -1,0 +1,50 @@
+
+{% extends 'music/base.html' %}
+
+{% block title %}Songs | TuneWave{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <h1>Explore Songs</h1>
+    <p>Find music that matches your mood.</p>
+
+    <input type="text" id="song-search"
+           placeholder="Search songs or artists...">
+
+    <div class="card-container">
+
+        <div class="music-card song-item">
+            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745" alt="Concert">
+            <h3>Blinding Lights</h3>
+            <p>The Weeknd</p>
+            <button class="play-song"
+                data-src="/static/music/audio/song1.mp3"
+                data-title="Blinding Lights"
+                data-artist="The Weeknd">▶ Play</button>
+        </div>
+
+        <div class="music-card song-item">
+            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81" alt="Singer">
+            <h3>Perfect</h3>
+            <p>Ed Sheeran</p>
+            <button class="play-song"
+                data-src="/static/music/audio/song2.mp3"
+                data-title="Perfect"
+                data-artist="Ed Sheeran">▶ Play</button>
+        </div>
+
+        <div class="music-card song-item">
+            <img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455" alt="Night sky">
+            <h3>Starboy</h3>
+            <p>The Weeknd</p>
+            <button class="play-song"
+                data-src="/static/music/audio/song3.mp3"
+                data-title="Starboy"
+                data-artist="The Weeknd">▶ Play</button>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

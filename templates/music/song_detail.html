@@ -1,0 +1,25 @@
+
+{% extends 'music/base.html' %}
+
+{% block title %}Song Details | TuneWave{% endblock %}
+
+{% block content %}
+
+<section class="song-detail">
+    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745"
+         alt="Music album">
+
+    <div>
+        <p>NOW PLAYING</p>
+        <h1>Blinding Lights</h1>
+        <h3>The Weeknd</h3>
+        <p>Enjoy your favourite music on TuneWave.</p>
+
+        <button class="play-song"
+            data-src="/static/music/audio/song1.mp3"
+            data-title="Blinding Lights"
+            data-artist="The Weeknd">▶ Play Song</button>
+    </div>
+</section>
+
+{% endblock %}
