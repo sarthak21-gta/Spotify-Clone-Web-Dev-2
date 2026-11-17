@@ -1,0 +1,80 @@
+
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}Login | TuneWave{% endblock %}
+
+{% block content %}
+
+<section class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            <h1>♪ TuneWave</h1>
+            <p>Welcome back to your music world!</p>
+        </div>
+
+        <h2>Login</h2>
+        <p class="auth-subtitle">
+            Sign in to continue listening to your favourite music.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p class="auth-message">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.errors %}
+            <p class="auth-error">
+                Please check your username and password.
+            </p>
+        {% endif %}
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username">Username</label>
+
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="auth-button">
+                Login
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account?</p>
+            <a href="{% url 'signup' %}">Create an account</a>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

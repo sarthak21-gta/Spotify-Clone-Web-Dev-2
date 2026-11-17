@@ -1,50 +1,92 @@
 
 {% extends 'music/base.html' %}
+{% load static %}
 
-{% block title %}Songs | TuneWave{% endblock %}
+{% block title %}Explore Songs | TuneWave{% endblock %}
 
 {% block content %}
 
-<section class="section">
-    <h1>Explore Songs</h1>
-    <p>Find music that matches your mood.</p>
+<section class="section songs-page">
 
-    <input type="text" id="song-search"
-           placeholder="Search songs or artists...">
+    <div class="section-heading">
+        <h1>Explore Songs</h1>
+        <p>Find music that matches your mood.</p>
+    </div>
 
+    <!-- Search Bar -->
+    <div class="song-search-box">
+        <input
+            type="text"
+            id="song-search"
+            placeholder="Search songs or artists..."
+        >
+    </div>
+
+    <!-- Song Cards -->
     <div class="card-container">
 
         <div class="music-card song-item">
-            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745" alt="Concert">
+            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745" alt="Blinding Lights">
+
             <h3>Blinding Lights</h3>
             <p>The Weeknd</p>
+
             <button class="play-song"
-                data-src="/static/music/audio/song1.mp3"
+                data-src="{% static 'music/audio/song1.mp3' %}"
                 data-title="Blinding Lights"
-                data-artist="The Weeknd">▶ Play</button>
+                data-artist="The Weeknd">
+                ▶ Play
+            </button>
         </div>
 
         <div class="music-card song-item">
-            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81" alt="Singer">
+            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81" alt="Perfect">
+
             <h3>Perfect</h3>
             <p>Ed Sheeran</p>
+
             <button class="play-song"
-                data-src="/static/music/audio/song2.mp3"
+                data-src="{% static 'music/audio/song2.mp3' %}"
                 data-title="Perfect"
-                data-artist="Ed Sheeran">▶ Play</button>
+                data-artist="Ed Sheeran">
+                ▶ Play
+            </button>
         </div>
 
         <div class="music-card song-item">
-            <img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455" alt="Night sky">
+            <img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455" alt="Starboy">
+
             <h3>Starboy</h3>
             <p>The Weeknd</p>
+
             <button class="play-song"
-                data-src="/static/music/audio/song3.mp3"
+                data-src="{% static 'music/audio/song3.mp3' %}"
                 data-title="Starboy"
-                data-artist="The Weeknd">▶ Play</button>
+                data-artist="The Weeknd">
+                ▶ Play
+            </button>
+        </div>
+
+        <div class="music-card song-item">
+            <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063" alt="Shape of You">
+
+            <h3>Shape of You</h3>
+            <p>Ed Sheeran</p>
+
+            <button class="play-song"
+                data-src="{% static 'music/audio/song4.mp3' %}"
+                data-title="Shape of You"
+                data-artist="Ed Sheeran">
+                ▶ Play
+            </button>
         </div>
 
     </div>
+
+    <p id="no-songs" style="display:none;">
+        No songs found. Try another search.
+    </p>
+
 </section>
 
 {% endblock %}
