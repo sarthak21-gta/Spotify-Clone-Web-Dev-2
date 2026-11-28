@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Recently Played - Spotify{% endblock %}
+
+{% block content %}
+<div class="content-body">
+
+    <!-- Page Hero -->
+    <div class="rp-hero">
+        <div class="rp-hero-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 0 1 0 18v-2a7 7 0 0 0 0-14v2l-4-3 4-3v2zm-2 0v2a7 7 0 0 0 0 14v2a9 9 0 0 1 0-18zM12 8v5l3 3-1.5 1.5L10 14V8h2z"/></svg>
+        </div>
+        <div class="rp-hero-text">
+            <span class="rp-hero-eyebrow">Your listening activity</span>
+            <h1 class="rp-hero-title">Recently Played</h1>
+            {% if history_entries %}
+            <span class="rp-hero-meta">{{ history_entries|length }} track{{ history_entries|length|pluralize }} in your history</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recently Played History -->
+    {% if history_entries %}
+    <section>
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Play History</h2>
+                <span class="section-subtitle">Your most recently listened tracks</span>
+            </div>
+        </div>
+
+        <table class="tracklist-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th>Title</th>
+                    <th>Album</th>
+                    <th style="text-align: right; width: 160px;">Played</th>
+                    <th style="text-align: right; width: 80px;">Time</th>
+                    <th style="width: 60px; text-align: center;">Like</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in history_entries %}
+                {% with song=entry.song %}
+                <tr class="tracklist-row {% if current_song.id == song.id %}active{% endif %}">
+                    <td class="track-index-col">
+                        <span class="track-index-num">{{ forloop.counter }}</span>
+                        <a href="/?play={{ song.id }}" class="track-play-icon" title="Play {{ song.title }}">
+                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;"><path d="M8 5v14l11-7z"/></svg>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="track-info-col">
+                            <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="track-thumb">
+                            <div class="track-meta">
+                                <a href="/?play={{ song.id }}" class="track-name">{{ song.title }}</a>
+                                <a href="{% url 'artist_detail' song.artist.id %}" class="track-artist">{{ song.artist.name }}</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if song.album %}
+                        <a href="{% url 'album_detail' song.album.id %}" class="section-link">{{ song.album.title }}</a>
+                        {% else %}
+                        <span style="color: var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right; color: var(--text-secondary); font-size: 0.8rem;">
+                        {{ entry.played_at|timesince }} ago
+                    </td>
+                    <td style="text-align: right;">{{ song.formatted_duration }}</td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'toggle_like' song.id %}?next=/recently-played/" class="heart-btn {% if song.id in liked_song_ids %}liked{% endif %}" title="Like">
+                            <svg viewBox="0 0 24 24">
+                                {% if song.id in liked_song_ids %}
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                {% else %}
+                                    <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
+                                {% endif %}
+                            </svg>
+                        </a>
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% else %}
+    <div class="rp-empty-state">
+        <svg viewBox="0 0 24 24" class="rp-empty-icon"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <h2>No play history yet</h2>
+        <p>Start playing songs and they'll appear here.</p>
+        <a href="{% url 'home' %}" class="btn-pill btn-green" style="margin-top: 20px; display: inline-block;">Browse Music</a>
+    </div>
+    {% endif %}
+
+    <!-- Made For You / Recommendations -->
+    {% if recommended_songs %}
+    <section id="made-for-you-section" style="margin-top: 40px;">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Made For You</h2>
+                <span class="section-subtitle">
+                    {% if history_entries %}Recommended based on your listening{% else %}Top picks to get you started{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="media-grid">
+            {% for song in recommended_songs %}
+            <div class="media-card">
+                <div class="media-card-artwork">
+                    <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="media-card-img">
+                    <a href="/?play={{ song.id }}" class="media-card-play-btn" title="Play {{ song.title }}">
+                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </a>
+                </div>
+                <a href="/?play={{ song.id }}" class="media-card-title">{{ song.title }}</a>
+                <span class="media-card-desc">
+                    <a href="{% url 'artist_detail' song.artist.id %}" style="color: var(--text-secondary);">{{ song.artist.name }}</a>
+                    {% if song.album %} •
+                    <a href="{% url 'album_detail' song.album.id %}" style="color: var(--text-secondary);">{{ song.album.title }}</a>
+                    {% endif %}
+                </span>
+                <span class="recommendation-badge">
+                    <svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:var(--spotify-green);margin-right:3px;vertical-align:middle;"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.48.66.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                    For You
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}
+

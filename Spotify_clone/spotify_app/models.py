@@ -133,3 +133,55 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user.username} likes {self.song.title}"
+
+
+class PlayHistory(models.Model):
+    """Tracks every song play per user for Recently Played and recommendations."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='play_history')
+    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='play_history')
+    played_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-played_at']
+
+    def __str__(self):
+        return f"{self.user.username} played {self.song.title} at {self.played_at:%Y-%m-%d %H:%M}"
+
+
+class ArtistFollow(models.Model):
+    """Stores which users follow which artists."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following_artists')
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='followers')
+    followed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'artist')
+        ordering = ['-followed_at']
+
+    def __str__(self):
+        return f"{self.user.username} follows {self.artist.name}"
+
+
+class UserProfile(models.Model):
+    """Extended profile data for each user."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    bio = models.TextField(blank=True, default='')
+    avatar_url = models.CharField(max_length=500, blank=True, default='')
+    is_public = models.BooleanField(default=True, help_text='Show profile to others')
+
+    def __str__(self):
+        return f"Profile of {self.user.username}"
+
+    def get_avatar_url(self):
+        if self.avatar_url:
+            return self.avatar_url
+        # Deterministic gradient avatar fallback — no external image needed
+        return ''
+
+    @property
+    def follower_count(self):
+        return self.user.following_artists.count()
+
+    @property
+    def playlist_count(self):
+        return self.user.playlists.filter(is_public=True).count()

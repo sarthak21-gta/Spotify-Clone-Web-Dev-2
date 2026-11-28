@@ -9,13 +9,19 @@
         <img src="{{ artist.image_url }}" alt="{{ artist.name }}" class="hero-cover round">
         <div class="hero-info">
             <div style="display: flex; align-items: center; gap: 8px;">
+                {% if artist.is_verified %}
                 <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #3d91f4;">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
                 <span class="hero-tag" style="color: #3d91f4;">Verified Artist</span>
+                {% endif %}
             </div>
             <h1 class="hero-title">{{ artist.name }}</h1>
-            <p class="hero-meta sub" style="font-size: 1rem; color: var(--text-primary);">{{ artist.formatted_listeners }} monthly listeners</p>
+            <p class="hero-meta sub" style="font-size: 1rem; color: var(--text-primary);">
+                {{ artist.formatted_listeners }} monthly listeners
+                <span style="margin: 0 8px; opacity: 0.5;">•</span>
+                <span style="color: var(--text-secondary);">{{ follower_count|default:"0" }} follower{{ follower_count|pluralize }}</span>
+            </p>
         </div>
     </header>
 
@@ -25,7 +31,16 @@
             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </a>
         {% endif %}
-        <button type="button" class="btn-pill btn-dark">Follow</button>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'toggle_follow' artist.id %}?next={{ request.path }}"
+               class="follow-btn {% if is_following %}following{% endif %}"
+               title="{% if is_following %}Unfollow{% else %}Follow{% endif %} {{ artist.name }}">
+                {% if is_following %}Following{% else %}Follow{% endif %}
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="follow-btn">Follow</a>
+        {% endif %}
     </div>
 
     <div class="content-body" style="padding-top: 0;">
@@ -50,6 +65,9 @@
                                 <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="track-thumb">
                                 <div class="track-meta">
                                     <a href="?play={{ song.id }}" class="track-name">{{ song.title }}</a>
+                                    {% if song.album %}
+                                    <a href="{% url 'album_detail' song.album.id %}" class="track-artist">{{ song.album.title }}</a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </td>
@@ -104,6 +122,9 @@
                 <h3 style="font-size: 1.4rem; margin-bottom: 12px;">{{ artist.name }}</h3>
                 <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
                     {{ artist.bio }}
+                </p>
+                <p style="margin-top: 16px; color: var(--text-muted); font-size: 0.85rem;">
+                    {{ artist.formatted_listeners }} monthly listeners &nbsp;•&nbsp; {{ follower_count }} follower{{ follower_count|pluralize }} on Spotify Clone
                 </p>
             </div>
         </section>

@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Song, Album, Artist, Playlist, Genre, Favorite
+from .models import Song, Album, Artist, Playlist, Genre, Favorite, PlayHistory, ArtistFollow, UserProfile
 
 def home(request):
     featured_playlists = Playlist.objects.filter(is_public=True)[:6]
@@ -18,6 +18,40 @@ def home(request):
 
     quick_picks = list(popular_albums[:4]) + list(featured_playlists[:2])
 
+    # Recently Played & Recommendations for authenticated users
+    recently_played = []
+    recommended_songs = []
+    recently_played_song_ids = set()
+
+    if request.user.is_authenticated:
+        # Get unique recently-played songs (most recent first, deduplicated)
+        seen_ids = set()
+        for ph in PlayHistory.objects.filter(user=request.user).select_related('song', 'song__artist', 'song__album')[:50]:
+            if ph.song_id not in seen_ids:
+                seen_ids.add(ph.song_id)
+                recently_played.append(ph.song)
+            if len(recently_played) >= 6:
+                break
+        recently_played_song_ids = seen_ids
+
+        # Recommendations: songs from same genres/artists as recently played, not already played
+        if recently_played:
+            played_genre_ids = [s.genre_id for s in recently_played if s.genre_id]
+            played_artist_ids = [s.artist_id for s in recently_played]
+            recommended_songs = (
+                Song.objects.filter(
+                    Q(genre_id__in=played_genre_ids) | Q(artist_id__in=played_artist_ids)
+                )
+                .exclude(id__in=recently_played_song_ids)
+                .select_related('artist', 'album')
+                .order_by('-plays_count')[:6]
+            )
+        else:
+            # Fallback: show popular songs if no history
+            recommended_songs = Song.objects.filter(is_popular=True).select_related('artist', 'album')[:6]
+            if not recommended_songs:
+                recommended_songs = Song.objects.all().order_by('-plays_count').select_related('artist', 'album')[:6]
+
     context = {
         'quick_picks': quick_picks,
         'featured_playlists': featured_playlists,
@@ -25,6 +59,8 @@ def home(request):
         'popular_artists': popular_artists,
         'trending_songs': trending_songs,
         'genres': genres,
+        'recently_played': recently_played,
+        'recommended_songs': recommended_songs,
     }
     return render(request, 'home.html', context)
 
@@ -98,11 +134,18 @@ def artist_detail(request, artist_id):
     artist = get_object_or_404(Artist, id=artist_id)
     top_songs = artist.songs.all().order_by('-plays_count')[:8]
     albums = artist.albums.all()
+    follower_count = artist.followers.count()
+    is_following = (
+        request.user.is_authenticated and
+        ArtistFollow.objects.filter(user=request.user, artist=artist).exists()
+    )
 
     return render(request, 'artist_detail.html', {
         'artist': artist,
         'top_songs': top_songs,
         'albums': albums,
+        'follower_count': follower_count,
+        'is_following': is_following,
     })
 
 def playlist_detail(request, playlist_id):
@@ -211,6 +254,68 @@ def toggle_like(request, song_id):
     next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/'
     return redirect(next_url)
 
+
+def toggle_follow(request, artist_id):
+    """Toggle following an artist. Returns to referer or artist page."""
+    if not request.user.is_authenticated:
+        return redirect(f'/login/?next=/artist/{artist_id}/')
+    artist = get_object_or_404(Artist, id=artist_id)
+    follow, created = ArtistFollow.objects.get_or_create(user=request.user, artist=artist)
+    if not created:
+        follow.delete()
+    # Ensure the user has a profile
+    UserProfile.objects.get_or_create(user=request.user)
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or f'/artist/{artist_id}/'
+    return redirect(next_url)
+
+
+def user_profile(request, username):
+    """Public user profile page."""
+    profile_user = get_object_or_404(User, username=username)
+    profile, _ = UserProfile.objects.get_or_create(user=profile_user)
+
+    if not profile.is_public and request.user != profile_user:
+        return render(request, 'profile_private.html', {'profile_user': profile_user})
+
+    playlists = Playlist.objects.filter(user=profile_user, is_public=True).order_by('-created_at')
+    liked_count = Favorite.objects.filter(user=profile_user).count()
+    following_artists = ArtistFollow.objects.filter(user=profile_user).select_related('artist').order_by('-followed_at')
+
+    # Recent play history (deduplicated, up to 6)
+    seen = set()
+    recent_tracks = []
+    for ph in PlayHistory.objects.filter(user=profile_user).select_related('song', 'song__artist', 'song__album')[:40]:
+        if ph.song_id not in seen:
+            seen.add(ph.song_id)
+            recent_tracks.append(ph.song)
+        if len(recent_tracks) >= 6:
+            break
+
+    is_own_profile = request.user == profile_user
+
+    return render(request, 'user_profile.html', {
+        'profile_user': profile_user,
+        'profile': profile,
+        'playlists': playlists,
+        'liked_count': liked_count,
+        'following_artists': following_artists,
+        'recent_tracks': recent_tracks,
+        'is_own_profile': is_own_profile,
+    })
+
+
+@login_required
+def edit_profile(request):
+    """Edit the logged-in user's own profile."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if request.method == 'POST':
+        profile.bio = request.POST.get('bio', '').strip()
+        profile.avatar_url = request.POST.get('avatar_url', '').strip()
+        profile.is_public = request.POST.get('is_public') == 'on'
+        profile.save()
+        return redirect('user_profile', username=request.user.username)
+    return render(request, 'edit_profile.html', {'profile': profile})
+
 def user_login(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -263,6 +368,40 @@ def user_signup(request):
             return redirect('home')
 
     return render(request, 'auth/signup.html', {'error': error})
+
+@login_required
+def recently_played_view(request):
+    """Full Recently Played page with play history."""
+    # Deduplicated recently played songs, most recent first
+    seen_ids = []
+    seen_set = set()
+    for ph in PlayHistory.objects.filter(user=request.user).select_related('song', 'song__artist', 'song__album'):
+        if ph.song_id not in seen_set:
+            seen_set.add(ph.song_id)
+            seen_ids.append(ph)
+        if len(seen_ids) >= 50:
+            break
+
+    # Recommendations: genres & artists from last 10 played
+    recent_songs = [ph.song for ph in seen_ids[:10]]
+    played_genre_ids = [s.genre_id for s in recent_songs if s.genre_id]
+    played_artist_ids = [s.artist_id for s in recent_songs]
+    recommended = (
+        Song.objects.filter(
+            Q(genre_id__in=played_genre_ids) | Q(artist_id__in=played_artist_ids)
+        )
+        .exclude(id__in=seen_set)
+        .select_related('artist', 'album')
+        .order_by('-plays_count')[:12]
+    )
+    if not recommended:
+        recommended = Song.objects.exclude(id__in=seen_set).order_by('-plays_count').select_related('artist', 'album')[:12]
+
+    return render(request, 'recently_played.html', {
+        'history_entries': seen_ids,
+        'recommended_songs': recommended,
+    })
+
 
 def user_logout(request):
     logout(request)
