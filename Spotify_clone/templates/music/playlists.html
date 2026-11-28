@@ -1,0 +1,54 @@
+
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}Playlists | TuneWave{% endblock %}
+
+{% block content %}
+
+<section class="section playlists-page">
+
+    <div class="section-heading">
+        <h1>Explore Playlists</h1>
+        <p>Music collections for every mood and moment.</p>
+    </div>
+
+    <div class="card-container">
+
+        <div class="playlist-card">
+            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745" alt="Chill Vibes">
+
+            <h3>Chill Vibes</h3>
+            <p>Relax and enjoy peaceful music.</p>
+            <span>Relaxing Collection</span>
+        </div>
+
+        <div class="playlist-card">
+            <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063" alt="Party Hits">
+
+            <h3>Party Hits</h3>
+            <p>Get ready to dance and enjoy.</p>
+            <span>Party Collection</span>
+        </div>
+
+        <div class="playlist-card">
+            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81" alt="Romantic Hits">
+
+            <h3>Romantic Hits</h3>
+            <p>Beautiful songs for special moments.</p>
+            <span>Love Collection</span>
+        </div>
+
+        <div class="playlist-card">
+            <img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455" alt="Night Drive">
+
+            <h3>Night Drive</h3>
+            <p>Perfect music for late-night journeys.</p>
+            <span>Night Collection</span>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
