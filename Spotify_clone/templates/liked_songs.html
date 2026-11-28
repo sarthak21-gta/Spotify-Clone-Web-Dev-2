@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Liked Songs - Spotify{% endblock %}
+
+{% block content %}
+<div>
+
+    <header class="hero-header" style="background: linear-gradient(135deg, #450af5, #8e8ee5); min-height: 240px;">
+        <div style="width: 220px; height: 220px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #450af5, #c4efd9); display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7); flex-shrink: 0;">
+            <svg viewBox="0 0 24 24" style="width: 80px; height: 80px; fill: white;">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        </div>
+        <div class="hero-info">
+            <span class="hero-tag">Playlist</span>
+            <h1 class="hero-title">Liked Songs</h1>
+            <div class="hero-meta">
+                <span style="font-weight: 700;">{{ user.username }}</span>
+                <span>•</span>
+                <span class="sub">{{ songs|length }} songs, {{ total_minutes }} min</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="action-bar">
+        {% if songs %}
+        <a href="?play={{ songs.0.id }}" class="big-play-btn" title="Play Liked Songs">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="content-body" style="padding-top: 0;">
+        {% if songs %}
+        <table class="tracklist-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th>Title</th>
+                    <th>Album</th>
+                    <th style="text-align: right; width: 80px;">Time</th>
+                    <th style="width: 60px; text-align: center;">Unlike</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for song in songs %}
+                <tr class="tracklist-row {% if current_song.id == song.id %}active{% endif %}">
+                    <td class="track-index-col">
+                        <span class="track-index-num">{{ forloop.counter }}</span>
+                        <a href="?play={{ song.id }}" class="track-play-icon" title="Play {{ song.title }}">
+                            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M8 5v14l11-7z"/></svg>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="track-info-col">
+                            <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="track-thumb">
+                            <div class="track-meta">
+                                <a href="?play={{ song.id }}" class="track-name">{{ song.title }}</a>
+                                <a href="{% url 'artist_detail' song.artist.id %}" class="track-artist">{{ song.artist.name }}</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if song.album %}
+                        <a href="{% url 'album_detail' song.album.id %}" class="section-link">{{ song.album.title }}</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">{{ song.formatted_duration }}</td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'toggle_like' song.id %}?next={{ current_path }}" class="heart-btn liked" title="Remove from Liked Songs">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 60px 0; color: var(--text-secondary);">
+            <h3 style="font-size: 1.4rem; color: var(--text-primary); margin-bottom: 8px;">Songs you like will appear here</h3>
+            <p style="margin-bottom: 24px;">Save songs by clicking the heart icon on any track.</p>
+            <a href="{% url 'home' %}" class="btn-pill btn-white">Find songs</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

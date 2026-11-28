@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Spotify - Search{% endblock %}
+
+{% block content %}
+<div class="content-body">
+    {% if query %}
+
+        <div class="section-header">
+            <h1 class="section-title">Results for "{{ query }}"</h1>
+        </div>
+
+        {% if not songs and not artists and not albums and not playlists %}
+            <div style="text-align: center; padding: 60px 0; color: var(--text-secondary);">
+                <h3 style="font-size: 1.4rem; color: var(--text-primary); margin-bottom: 8px;">No results found for "{{ query }}"</h3>
+                <p>Please make sure your words are spelled correctly, or use fewer or different keywords.</p>
+            </div>
+        {% else %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 16px;">
+                {% if top_result %}
+                <div>
+                    <h2 class="section-title" style="margin-bottom: 16px;">Top result</h2>
+                    {% if top_result.type == 'artist' %}
+                        <div class="media-card" style="padding: 24px; height: calc(100% - 40px); justify-content: flex-end;">
+                            <img src="{{ top_result.object.image_url }}" alt="{{ top_result.object.name }}" style="width: 96px; height: 96px; border-radius: var(--radius-full); object-fit: cover; margin-bottom: 16px;">
+                            <h3 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">{{ top_result.object.name }}</h3>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span class="pill" style="align-self: flex-start;">Artist</span>
+                                {% if top_result.object.songs.first %}
+                                <a href="?play={{ top_result.object.songs.first.id }}" class="big-play-btn" title="Play {{ top_result.object.name }}">
+                                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% elif top_result.type == 'song' %}
+                        <div class="media-card" style="padding: 24px; height: calc(100% - 40px); justify-content: flex-end;">
+                            <img src="{{ top_result.object.get_cover_url }}" alt="{{ top_result.object.title }}" style="width: 96px; height: 96px; border-radius: var(--radius-sm); object-fit: cover; margin-bottom: 16px;">
+                            <h3 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 4px;">{{ top_result.object.title }}</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 16px;">Song • {{ top_result.object.artist.name }}</p>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span class="pill" style="align-self: flex-start;">Song</span>
+                                <a href="?play={{ top_result.object.id }}" class="big-play-btn" title="Play">
+                                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if songs %}
+                <div style="flex: 1;">
+                    <h2 class="section-title" style="margin-bottom: 16px;">Songs</h2>
+                    <table class="tracklist-table">
+                        <tbody>
+                            {% for song in songs|slice:":5" %}
+                            <tr class="tracklist-row {% if current_song.id == song.id %}active{% endif %}">
+                                <td class="track-index-col">
+                                    <span class="track-index-num">{{ forloop.counter }}</span>
+                                    <a href="?play={{ song.id }}" class="track-play-icon" title="Play">
+                                        <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M8 5v14l11-7z"/></svg>
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="track-info-col">
+                                        <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="track-thumb">
+                                        <div class="track-meta">
+                                            <a href="?play={{ song.id }}" class="track-name">{{ song.title }}</a>
+                                            <a href="{% url 'artist_detail' song.artist.id %}" class="track-artist">{{ song.artist.name }}</a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="text-align: right;">{{ song.formatted_duration }}</td>
+                                <td style="text-align: center; width: 40px;">
+                                    <a href="{% url 'toggle_like' song.id %}?next={{ current_path }}" class="heart-btn {% if song.id in liked_song_ids %}liked{% endif %}">
+                                        <svg viewBox="0 0 24 24">
+                                            {% if song.id in liked_song_ids %}
+                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                            {% else %}
+                                                <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
+                                            {% endif %}
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if artists %}
+            <section>
+                <div class="section-header">
+                    <h2 class="section-title">Artists</h2>
+                </div>
+                <div class="media-grid">
+                    {% for artist in artists %}
+                    <div class="media-card artist">
+                        <div class="media-card-artwork">
+                            <img src="{{ artist.image_url }}" alt="{{ artist.name }}" class="media-card-img">
+                            {% if artist.songs.first %}
+                            <a href="?play={{ artist.songs.first.id }}" class="media-card-play-btn" title="Play">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'artist_detail' artist.id %}" class="media-card-title">{{ artist.name }}</a>
+                        <span class="media-card-desc">Artist</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if albums %}
+            <section>
+                <div class="section-header">
+                    <h2 class="section-title">Albums</h2>
+                </div>
+                <div class="media-grid">
+                    {% for alb in albums %}
+                    <div class="media-card">
+                        <div class="media-card-artwork">
+                            <img src="{{ alb.cover_image_url }}" alt="{{ alb.title }}" class="media-card-img">
+                            {% if alb.songs.first %}
+                            <a href="?play={{ alb.songs.first.id }}" class="media-card-play-btn" title="Play">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'album_detail' alb.id %}" class="media-card-title">{{ alb.title }}</a>
+                        <span class="media-card-desc">{{ alb.release_date }} • {{ alb.artist.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endif %}
+
+    {% else %}
+
+        <section>
+            <div class="section-header">
+                <h1 class="section-title">Browse all</h1>
+            </div>
+
+            <div class="genre-grid">
+                {% for genre in genres %}
+                <a href="{% url 'genre_detail' genre.slug %}" class="genre-card" style="background-color: {{ genre.color }};">
+                    <span class="genre-title">{{ genre.name }}</span>
+                    <img src="{{ genre.image_url }}" alt="{{ genre.name }}" class="genre-card-img">
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

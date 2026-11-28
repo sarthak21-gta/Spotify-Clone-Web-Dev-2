@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ playlist.title }} - Playlist | Spotify{% endblock %}
+
+{% block content %}
+<div>
+
+    <header class="hero-header" style="--hero-bg: #4a3b32;">
+        <img src="{{ playlist.get_cover_url }}" alt="{{ playlist.title }}" class="hero-cover">
+        <div class="hero-info">
+            <span class="hero-tag">Playlist</span>
+            <h1 class="hero-title">{{ playlist.title }}</h1>
+            {% if playlist.description %}
+            <p class="hero-desc">{{ playlist.description }}</p>
+            {% endif %}
+            <div class="hero-meta">
+                <span style="font-weight: 700;">{{ playlist.user.username }}</span>
+                <span>•</span>
+                <span class="sub">{{ songs|length }} songs, {{ total_minutes }} min</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="action-bar">
+        {% if songs.first %}
+        <a href="?play={{ songs.first.id }}" class="big-play-btn" title="Play {{ playlist.title }}">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </a>
+        {% endif %}
+
+        {% if is_owner %}
+        <form method="POST" action="{% url 'playlist_delete' playlist.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-pill btn-dark" style="color: #ff6b6b; border-color: rgba(255, 107, 107, 0.4);">
+                Delete Playlist
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="content-body" style="padding-top: 0;">
+        {% if songs %}
+        <table class="tracklist-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th>Title</th>
+                    <th>Album</th>
+                    <th style="text-align: right; width: 80px;">Time</th>
+                    <th style="width: 100px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for song in songs %}
+                <tr class="tracklist-row {% if current_song.id == song.id %}active{% endif %}">
+                    <td class="track-index-col">
+                        <span class="track-index-num">{{ forloop.counter }}</span>
+                        <a href="?play={{ song.id }}" class="track-play-icon" title="Play {{ song.title }}">
+                            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M8 5v14l11-7z"/></svg>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="track-info-col">
+                            <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="track-thumb">
+                            <div class="track-meta">
+                                <a href="?play={{ song.id }}" class="track-name">{{ song.title }}</a>
+                                <a href="{% url 'artist_detail' song.artist.id %}" class="track-artist">{{ song.artist.name }}</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if song.album %}
+                        <a href="{% url 'album_detail' song.album.id %}" class="section-link">{{ song.album.title }}</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">{{ song.formatted_duration }}</td>
+                    <td style="text-align: center;">
+                        <div class="track-actions" style="justify-content: center;">
+                            <a href="{% url 'toggle_like' song.id %}?next={{ current_path }}" class="heart-btn {% if song.id in liked_song_ids %}liked{% endif %}" title="Like">
+                                <svg viewBox="0 0 24 24">
+                                    {% if song.id in liked_song_ids %}
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    {% else %}
+                                        <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
+                                    {% endif %}
+                                </svg>
+                            </a>
+                            {% if is_owner %}
+                            <a href="{% url 'playlist_remove_song' playlist.id song.id %}?next={{ current_path }}" class="icon-btn" title="Remove from playlist" style="color: var(--text-muted);">
+                                ✕
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 48px 0; color: var(--text-secondary);">
+            <h3 style="font-size: 1.3rem; color: var(--text-primary); margin-bottom: 8px;">It's a bit empty here</h3>
+            <p>Let's find some songs for your playlist</p>
+        </div>
+        {% endif %}
+
+        {% if is_owner and available_songs %}
+        <section style="margin-top: 56px; border-top: 1px solid var(--border-subtle); padding-top: 32px;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Recommended</h2>
+                    <span class="section-subtitle">Based on what's in this playlist</span>
+                </div>
+            </div>
+
+            <table class="tracklist-table">
+                <tbody>
+                    {% for song in available_songs %}
+                    <tr class="tracklist-row">
+                        <td style="width: 40px; text-align: center;">
+                            <a href="?play={{ song.id }}" class="track-play-icon" style="display: inline-flex;" title="Preview">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M8 5v14l11-7z"/></svg>
+                            </a>
+                        </td>
+                        <td>
+                            <div class="track-info-col">
+                                <img src="{{ song.get_cover_url }}" alt="{{ song.title }}" class="track-thumb">
+                                <div class="track-meta">
+                                    <span class="track-name">{{ song.title }}</span>
+                                    <span class="track-artist">{{ song.artist.name }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ song.album.title|default:"Single" }}</td>
+                        <td style="text-align: right; width: 100px;">
+                            <a href="{% url 'playlist_add_song' playlist.id song.id %}?next={{ current_path }}" class="btn-pill btn-dark" style="padding: 6px 14px; font-size: 0.8rem;">
+                                Add
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

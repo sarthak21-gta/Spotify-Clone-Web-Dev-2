@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Your Library - Spotify{% endblock %}
+
+{% block content %}
+<div class="content-body">
+    <div class="section-header">
+        <h1 class="section-title">Your Library</h1>
+        <a href="#create-playlist-modal" class="btn-pill btn-white">+ New Playlist</a>
+    </div>
+
+    <div class="media-grid">
+
+        <a href="{% url 'liked_songs' %}" class="media-card" style="background: linear-gradient(135deg, #450af5, #8e8ee5); min-height: 240px; justify-content: flex-end; padding: 20px;">
+            <div style="margin-bottom: auto; align-self: flex-start;">
+                <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; fill: white;">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </div>
+            <h3 style="font-size: 1.8rem; font-weight: 800; color: white; margin-bottom: 4px;">Liked Songs</h3>
+            <span style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">{{ liked_count }} liked songs</span>
+        </a>
+
+        {% for pl in playlists %}
+        <div class="media-card" onclick="window.location.href='{% url 'playlist_detail' pl.id %}'" style="cursor: pointer;">
+            <div class="media-card-artwork">
+                <img src="{{ pl.get_cover_url }}" alt="{{ pl.title }}" class="media-card-img">
+                {% if pl.songs.first %}
+                <a href="?play={{ pl.songs.first.id }}" class="media-card-play-btn" title="Play" onclick="event.stopPropagation();">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </a>
+                {% else %}
+                <a href="{% url 'playlist_detail' pl.id %}" class="media-card-play-btn" title="Open {{ pl.title }}" onclick="event.stopPropagation();">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </a>
+                {% endif %}
+            </div>
+            <a href="{% url 'playlist_detail' pl.id %}" class="media-card-title">{{ pl.title }}</a>
+            <span class="media-card-desc">Playlist • {{ pl.user.username }}</span>
+        </div>
+        {% endfor %}
+
+        <a href="#create-playlist-modal" class="media-card" style="border: 2px dashed var(--border-subtle); background: transparent; display: flex; align-items: center; justify-content: center; min-height: 240px; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-full); background: var(--bg-surface); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--text-secondary);">
+                <svg viewBox="0 0 24 24" style="width: 28px; height: 28px; fill: currentColor;"><path d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1z"/></svg>
+            </div>
+            <span style="font-weight: 700; font-size: 1rem;">Create Playlist</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Create Playlist - Spotify{% endblock %}
+
+{% block content %}
+<div class="content-body" style="max-width: 600px; margin: 40px auto;">
+    <div class="section-header">
+        <h1 class="section-title">Create a new playlist</h1>
+    </div>
+
+    <form method="POST" action="{% url 'create_playlist' %}" style="display: flex; flex-direction: column; gap: 20px; background-color: var(--bg-surface); padding: 32px; border-radius: var(--radius-md);">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Playlist Name</label>
+            <input type="text" name="title" class="form-input" placeholder="My Playlist" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Description (optional)</label>
+            <textarea name="description" class="form-textarea" placeholder="Give your playlist a catchy description"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Cover Image URL (optional)</label>
+            <input type="url" name="cover_image_url" class="form-input" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 12px;">
+            <a href="{% url 'library' %}" class="btn-pill btn-dark">Cancel</a>
+            <button type="submit" class="btn-pill btn-green">Create Playlist</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

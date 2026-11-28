@@ -1,0 +1,270 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Spotify - Web Player: Music for everyone{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/spotify.css' %}">
+</head>
+<body>
+
+    <input type="checkbox" id="toggle-right-panel">
+
+    <div class="spotify-app">
+
+        <aside class="sidebar">
+
+            <div class="sidebar-box sidebar-nav">
+                <a href="{% url 'home' %}" class="spotify-brand">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.48.66.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                    </svg>
+                    <span>Spotify</span>
+                </a>
+
+                <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33A2 2 0 0 1 22 7.577V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-5h-3v5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z"/>
+                    </svg>
+                    <span>Home</span>
+                </a>
+
+                <a href="{% url 'search' %}" class="nav-link {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.058l4.353 4.353a1 1 0 1 0 1.414-1.414l-4.344-4.344a9.157 9.157 0 0 0 2.077-5.816c0-5.14-4.226-9.28-9.407-9.28zm-7.407 9.279c0-4.006 3.302-7.28 7.407-7.28s7.407 3.274 7.407 7.28-3.302 7.279-7.407 7.279-7.407-3.273-7.407-7.28z"/>
+                    </svg>
+                    <span>Search</span>
+                </a>
+            </div>
+
+            <div class="sidebar-box sidebar-library">
+                <div class="library-header">
+                    <a href="{% url 'library' %}" class="library-title">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M3 22a1 1 0 0 1-1-1V3a1 1 0 0 1 2 0v18a1 1 0 0 1-1 1zM15.5 2.134A1 1 0 0 0 14 3v18a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1.5-.866l-5 1zm.5 2.457 4-.8V20h-4V4.591zM7.5 4.366A1 1 0 0 0 6 5.232v13.536a1 1 0 0 0 1.5.866l5-2.887A1 1 0 0 0 13 15.88V2.344a1 1 0 0 0-1.5-.866l-5 2.888zm.5 2.457 4-2.31v11.754l-4 2.31V6.823z"/>
+                        </svg>
+                        <span>Your Library</span>
+                    </a>
+                    <a href="#create-playlist-modal" class="icon-btn" title="Create playlist">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="library-pills">
+                    <a href="{% url 'library' %}" class="pill">Playlists</a>
+                    <a href="{% url 'home' %}#artists-section" class="pill">Artists</a>
+                    <a href="{% url 'home' %}#albums-section" class="pill">Albums</a>
+                </div>
+
+                <div class="library-items">
+
+                    <a href="{% url 'liked_songs' %}" class="library-item">
+                        <div class="liked-heart-thumb">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </div>
+                        <div class="library-item-meta">
+                            <span class="library-item-title">Liked Songs</span>
+                            <span class="library-item-subtitle">Playlist • {{ liked_song_ids|length }} songs</span>
+                        </div>
+                    </a>
+
+                    {% for pl in user_playlists %}
+                    <a href="{% url 'playlist_detail' pl.id %}" class="library-item">
+                        <img src="{{ pl.get_cover_url }}" alt="{{ pl.title }}" class="library-item-thumb">
+                        <div class="library-item-meta">
+                            <span class="library-item-title">{{ pl.title }}</span>
+                            <span class="library-item-subtitle">Playlist • {{ pl.user.username }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-view">
+
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div class="nav-arrows">
+                        <a href="{% url 'home' %}" class="nav-arrow" title="Back to Home">
+                            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </a>
+                        <a href="{% url 'search' %}" class="nav-arrow" title="Search">
+                            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        </a>
+                    </div>
+
+                    <form method="GET" action="{% url 'search' %}" class="topbar-search">
+                        <div class="topbar-search-icon">
+                            <svg viewBox="0 0 24 24"><path d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.058l4.353 4.353a1 1 0 1 0 1.414-1.414l-4.344-4.344a9.157 9.157 0 0 0 2.077-5.816c0-5.14-4.226-9.28-9.407-9.28zm-7.407 9.279c0-4.006 3.302-7.28 7.407-7.28s7.407 3.274 7.407 7.28-3.302 7.279-7.407 7.279-7.407-3.273-7.407-7.28z"/></svg>
+                        </div>
+                        <input type="text" name="q" placeholder="What do you want to play?" value="{{ request.GET.q }}">
+                    </form>
+                </div>
+
+                <div class="topbar-right">
+                    {% if user.is_authenticated %}
+                        <a href="https://www.spotify.com/premium/" target="_blank" class="btn-pill btn-white">Explore Premium</a>
+                        <div class="user-menu-container">
+                            <button type="button" class="user-avatar-btn">
+                                <span class="user-avatar-circle">{{ user.username|slice:":1"|upper }}</span>
+                                <span>{{ user.username }}</span>
+                            </button>
+                            <div class="user-dropdown">
+                                <a href="{% url 'library' %}" class="dropdown-item">Your Library</a>
+                                <a href="{% url 'liked_songs' %}" class="dropdown-item">Liked Songs</a>
+                                <a href="#create-playlist-modal" class="dropdown-item">Create Playlist</a>
+                                <a href="{% url 'logout' %}" class="dropdown-item" style="color: #ff6b6b;">Log out</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'demo_login' %}" class="btn-pill btn-dark" title="Instant access without password">1-Click Demo Login</a>
+                        <a href="{% url 'signup' %}" class="btn-pill btn-dark">Sign up</a>
+                        <a href="{% url 'login' %}" class="btn-pill btn-white">Log in</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <aside class="right-panel">
+            <div class="right-panel-header">
+                <span class="right-panel-title">Now Playing</span>
+                <label for="toggle-right-panel" class="icon-btn" title="Close Panel">✕</label>
+            </div>
+            {% if current_song %}
+                <img src="{{ current_song.get_cover_url }}" alt="{{ current_song.title }}" class="right-panel-art">
+                <div class="right-panel-song-title">{{ current_song.title }}</div>
+                <div class="right-panel-artist-name">
+                    <a href="{% url 'artist_detail' current_song.artist.id %}">{{ current_song.artist.name }}</a>
+                </div>
+
+                <div class="artist-about-box">
+                    <span class="artist-about-title">About the artist</span>
+                    <p class="artist-about-bio">{{ current_song.artist.bio }}</p>
+                    <span class="hero-meta sub">{{ current_song.artist.formatted_listeners }} monthly listeners</span>
+                </div>
+            {% else %}
+                <p style="color: var(--text-secondary); margin-top: 20px;">No song currently playing.</p>
+            {% endif %}
+        </aside>
+
+        <footer class="player-bar">
+
+            <div class="player-left">
+                {% if current_song %}
+                    <img src="{{ current_song.get_cover_url }}" alt="{{ current_song.title }}" class="player-thumb">
+                    <div class="player-track-meta">
+                        <span class="player-track-name">{{ current_song.title }}</span>
+                        <a href="{% url 'artist_detail' current_song.artist.id %}" class="player-track-artist">{{ current_song.artist.name }}</a>
+                    </div>
+                    <a href="{% url 'toggle_like' current_song.id %}?next={{ current_path }}" class="heart-btn {% if current_song.id in liked_song_ids %}liked{% endif %}" title="Save to Liked Songs">
+                        <svg viewBox="0 0 24 24">
+                            {% if current_song.id in liked_song_ids %}
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            {% else %}
+                                <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
+                            {% endif %}
+                        </svg>
+                    </a>
+                {% else %}
+                    <div class="player-track-meta">
+                        <span class="player-track-name">Select a song to play</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="player-center">
+                <div class="player-controls-row">
+
+                    <span class="control-btn" title="Shuffle">
+                        <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                    </span>
+
+                    {% if prev_song_id %}
+                    <a href="?play={{ prev_song_id }}" class="control-btn" title="Previous Track">
+                        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </a>
+                    {% else %}
+                    <span class="control-btn" style="opacity: 0.4;">
+                        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </span>
+                    {% endif %}
+
+                    {% if next_song_id %}
+                    <a href="?play={{ next_song_id }}" class="control-btn" title="Next Track">
+                        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </a>
+                    {% else %}
+                    <span class="control-btn" style="opacity: 0.4;">
+                        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </span>
+                    {% endif %}
+
+                    <span class="control-btn" title="Repeat">
+                        <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                    </span>
+                </div>
+
+                {% if current_song and current_song.get_audio_url %}
+                    <audio class="native-spotify-audio" controls autoplay src="{{ current_song.get_audio_url }}">
+                        Your browser does not support the audio element.
+                    </audio>
+                {% endif %}
+            </div>
+
+            <div class="player-right">
+
+                <label for="toggle-right-panel" class="panel-toggle-label" title="Now playing view">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H5V5h9v12zm5 0h-3V5h3v12z"/></svg>
+                </label>
+            </div>
+        </footer>
+    </div>
+
+    <div id="create-playlist-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Playlist</h3>
+                <a href="#" class="modal-close-btn">&times;</a>
+            </div>
+            {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'create_playlist' %}">
+                    {% csrf_token %}
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="title" class="form-input" placeholder="My Playlist" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">Description (optional)</label>
+                        <textarea name="description" class="form-textarea" placeholder="Give your playlist a catchy description"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label class="form-label">Cover Image URL (optional)</label>
+                        <input type="url" name="cover_image_url" class="form-input" placeholder="https://example.com/cover.jpg">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                        <a href="#" class="btn-pill btn-dark">Cancel</a>
+                        <button type="submit" class="btn-pill btn-green">Create</button>
+                    </div>
+                </form>
+            {% else %}
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Please log in to create and save playlists to your Spotify library.
+                </p>
+                <div style="display: flex; gap: 12px;">
+                    <a href="{% url 'demo_login' %}" class="btn-pill btn-green">1-Click Demo Login</a>
+                    <a href="{% url 'login' %}" class="btn-pill btn-white">Log in</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
