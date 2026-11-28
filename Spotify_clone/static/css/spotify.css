@@ -1437,3 +1437,16 @@ button, input, select, textarea {
     display: none;
   }
 }
+
+
+/* Continuous player + AJAX controls */
+#spotify-player .player-center { gap: 3px; }
+#spotify-player .player-controls-row { gap: 18px; }
+#spotify-player .control-btn { font-size: 16px; min-width: 26px; min-height: 26px; }
+#spotify-player .player-main-control { width: 32px; height: 32px; border-radius: 50%; background: #fff; color: #000; font-size: 14px; }
+#spotify-player .control-btn.is-active { color: var(--spotify-green, #1ed760); }
+#spotify-player .native-spotify-audio { height: 25px; max-width: 540px; }
+#spotify-player .player-status { color: var(--text-secondary); font-size: 10px; min-height: 12px; }
+#player-like { border: 0; background: transparent; cursor: pointer; color: var(--text-secondary); font-size: 19px; }
+#player-like.liked { color: #1ed760; }
+@media (max-width: 700px) { #spotify-player { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr); } #spotify-player .player-right { display:none; } #spotify-player .player-thumb { width:40px;height:40px; } #spotify-player .player-controls-row { gap:8px; } }
