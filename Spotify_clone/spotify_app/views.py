@@ -417,3 +417,100 @@ def demo_login(request):
         demo_user.save()
     login(request, demo_user)
     return redirect('home')
+
+
+# ---------------------------------------------------------------------------
+# AJAX music player API
+# ---------------------------------------------------------------------------
+def _song_payload(song):
+    return {
+        'id': song.id,
+        'title': song.title,
+        'artist': song.artist.name,
+        'artist_url': f'/artist/{song.artist_id}/',
+        'cover_url': song.get_cover_url(),
+        'audio_url': song.get_audio_url(),
+        'duration': song.duration_seconds,
+    }
+
+def player_play(request):
+    """Start a song and save its queue in the user's session."""
+    from django.http import JsonResponse
+    import json
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    try:
+        data = json.loads(request.body or '{}')
+        song_id = int(data.get('song_id'))
+        queue_ids = [int(value) for value in data.get('queue', [])]
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return JsonResponse({'error': 'Invalid song or queue'}, status=400)
+    song = get_object_or_404(Song.objects.select_related('artist', 'album'), id=song_id)
+    valid_ids = list(Song.objects.filter(id__in=queue_ids).values_list('id', flat=True))
+    if song.id not in valid_ids:
+        valid_ids.insert(0, song.id)
+    request.session['player_queue'] = valid_ids
+    request.session['player_index'] = valid_ids.index(song.id)
+    request.session['current_song_id'] = song.id
+    song.plays_count += 1
+    song.save(update_fields=['plays_count'])
+    return JsonResponse({'song': _song_payload(song), 'queue': valid_ids, 'index': request.session['player_index']})
+
+def player_step(request):
+    """Move through the session queue without reloading the page."""
+    from django.http import JsonResponse
+    import json, random
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        data = {}
+    queue_ids = request.session.get('player_queue', [])
+    if not queue_ids:
+        return JsonResponse({'error': 'Queue is empty'}, status=404)
+    index = int(request.session.get('player_index', 0))
+    action = data.get('action', 'next')
+    repeat_all = bool(data.get('repeat_all'))
+    shuffle = bool(data.get('shuffle'))
+    if action == 'previous':
+        index = max(0, index - 1)
+    elif shuffle and len(queue_ids) > 1:
+        choices = [i for i in range(len(queue_ids)) if i != index]
+        index = random.choice(choices)
+    elif index + 1 < len(queue_ids):
+        index += 1
+    elif repeat_all:
+        index = 0
+    else:
+        return JsonResponse({'ended': True})
+    song = get_object_or_404(Song.objects.select_related('artist', 'album'), id=queue_ids[index])
+    request.session['player_index'] = index
+    request.session['current_song_id'] = song.id
+    song.plays_count += 1
+    song.save(update_fields=['plays_count'])
+    return JsonResponse({'song': _song_payload(song), 'index': index, 'queue': queue_ids})
+
+@login_required
+
+def ajax_toggle_like(request, song_id):
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    song = get_object_or_404(Song, id=song_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, song=song)
+    if not created:
+        favorite.delete()
+    return JsonResponse({'liked': created, 'song_id': song.id})
+
+@login_required
+
+def ajax_add_to_playlist(request, song_id):
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    song = get_object_or_404(Song, id=song_id)
+    playlist_id = request.POST.get('playlist_id')
+    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    playlist.songs.add(song)
+    return JsonResponse({'success': True, 'playlist': playlist.title, 'song_id': song.id})

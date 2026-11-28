@@ -2,6 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('api/player/play/', views.player_play, name='player_play'),
+    path('api/player/step/', views.player_step, name='player_step'),
+    path('api/song/<int:song_id>/like/', views.ajax_toggle_like, name='ajax_toggle_like'),
+    path('api/song/<int:song_id>/add-to-playlist/', views.ajax_add_to_playlist, name='ajax_add_to_playlist'),
     path('', views.home, name='home'),
     path('search/', views.search, name='search'),
     path('genre/<slug:slug>/', views.genre_detail, name='genre_detail'),
